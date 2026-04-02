@@ -15,6 +15,7 @@ from config import (
     LOGS_DIR
 )
 from database import init_db, close_db
+from scheduler import start_scheduler, stop_scheduler
 
 # 导入路由
 from routes import (
@@ -36,12 +37,19 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("数据库初始化完成")
     
+    # 启动定时任务调度器
+    logger.info("正在启动定时任务调度器...")
+    start_scheduler()
+    
     logger.info("能源行业热点资讯系统启动成功")
     logger.info(f"API 文档地址：http://{HOST}:{PORT}/docs")
     
     yield
     
     # 关闭时执行
+    logger.info("正在停止定时任务调度器...")
+    stop_scheduler()
+    
     logger.info("正在关闭数据库连接...")
     await close_db()
     logger.info("应用已关闭")
