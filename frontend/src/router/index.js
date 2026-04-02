@@ -8,15 +8,15 @@ const routes = [
     meta: { title: '首页' }
   },
   {
-    path: '/oil',
-    name: 'Oil',
-    component: () => import('../views/Oil.vue'),
+    path: '/oil-gas',
+    name: 'OilGas',
+    component: () => import('../views/OilGas.vue'),
     meta: { title: '油气' }
   },
   {
-    path: '/wind',
-    name: 'Wind',
-    component: () => import('../views/Wind.vue'),
+    path: '/wind-power',
+    name: 'WindPower',
+    component: () => import('../views/WindPower.vue'),
     meta: { title: '风电' }
   },
   {
