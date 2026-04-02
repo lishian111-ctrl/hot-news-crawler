@@ -15,19 +15,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM 检查虚拟环境
-if not exist "venv" (
-    echo [提示] 正在创建虚拟环境...
-    python -m venv venv
-)
-
-REM 激活虚拟环境
-echo [提示] 激活虚拟环境...
-call venv\Scripts\activate.bat
-
-REM 安装依赖
-echo [提示] 检查并安装依赖...
-pip install -r requirements.txt -q
+echo [提示] 正在检查依赖...
+pip install -r requirements.txt -q 2>nul
 
 REM 创建必要的目录
 if not exist "logs" mkdir logs
@@ -37,8 +26,8 @@ REM 启动应用
 echo.
 echo ========================================
 echo     正在启动服务...
-echo     访问地址：http://localhost:8000
-echo     API 文档：http://localhost:8000/docs
+echo     访问地址：http://localhost:8001
+echo     API 文档：http://localhost:8001/docs
 echo ========================================
 echo.
 
