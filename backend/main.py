@@ -16,6 +16,15 @@ from config import (
 )
 from database import init_db, close_db
 
+# 导入路由
+from routes import (
+    news_router,
+    hot_router,
+    favorite_router,
+    source_router,
+    logs_router
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,7 +36,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("数据库初始化完成")
     
-    logger.info(f"能源行业热点资讯系统启动成功")
+    logger.info("能源行业热点资讯系统启动成功")
     logger.info(f"API 文档地址：http://{HOST}:{PORT}/docs")
     
     yield
@@ -43,7 +52,6 @@ app = FastAPI(
     title=API_TITLE,
     version=API_VERSION,
     description=API_DESCRIPTION,
-    root_path=API_PREFIX,
     lifespan=lifespan
 )
 
@@ -55,6 +63,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 注册路由
+app.include_router(news_router, prefix=API_PREFIX)
+app.include_router(hot_router, prefix=API_PREFIX)
+app.include_router(favorite_router, prefix=API_PREFIX)
+app.include_router(source_router, prefix=API_PREFIX)
+app.include_router(logs_router, prefix=API_PREFIX)
 
 
 @app.get("/")
