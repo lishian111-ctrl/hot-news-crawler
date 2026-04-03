@@ -11,28 +11,14 @@
       </el-button>
     </div>
 
-    <el-row :gutter="20">
-      <!-- 左侧新闻列表 -->
-      <el-col :xs="24" :lg="16">
-        <NewsList
-          :news-list="newsList"
-          :total="total"
-          @load="handleLoad"
-          @favorite="handleFavorite"
-        />
-      </el-col>
-
-      <!-- 右侧热点排行 -->
-      <el-col :xs="24" :lg="8">
-        <HotRanking
-          title="FFML 热点排行"
-          :ranking-list="hotRanking"
-          :loading="rankingLoading"
-          @refresh="handleRefresh"
-          @click="handleNewsClick"
-        />
-      </el-col>
-    </el-row>
+    <!-- 时间线新闻列表 -->
+    <TimelineNewsList
+      :news-list="newsList"
+      :total="total"
+      :loading="loading"
+      @load="handleLoad"
+      @favorite="handleFavorite"
+    />
   </div>
 </template>
 
@@ -40,77 +26,51 @@
 import { ref, onMounted } from 'vue'
 import { DataAnalysis, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import NewsList from '../components/NewsList.vue'
-import HotRanking from '../components/HotRanking.vue'
-import newsApi from '../api/news'
+import TimelineNewsList from '../components/TimelineNewsList.vue'
+import { newsApi, favoriteApi } from '../api/index'
 
 const loading = ref(false)
-const rankingLoading = ref(false)
 const newsList = ref([])
 const total = ref(0)
-const hotRanking = ref([])
 
-// 加载新闻列表
 const loadNewsList = async (page = 1, pageSize = 20) => {
   loading.value = true
   try {
-    const res = await newsApi.getNewsList({
-      category: 'ffml',
-      page,
-      pageSize
-    })
-    newsList.value = res.data.list || []
-    total.value = res.data.total || 0
+    const res = await newsApi.getList({ category: 'ffml', page, page_size: pageSize })
+    newsList.value = res.data?.data?.list || []
+    total.value = res.data?.data?.total || 0
   } catch (error) {
     ElMessage.error('加载新闻列表失败')
-    console.error(error)
   } finally {
     loading.value = false
   }
 }
 
-// 加载热点排行
-const loadHotRanking = async () => {
-  rankingLoading.value = true
-  try {
-    const res = await newsApi.getHotRanking({ category: 'ffml' })
-    hotRanking.value = res.data || []
-  } catch (error) {
-    console.error(error)
-  } finally {
-    rankingLoading.value = false
-  }
-}
-
-// 处理刷新
 const handleRefresh = () => {
   loadNewsList()
-  loadHotRanking()
 }
 
-// 处理加载
 const handleLoad = ({ page, pageSize }) => {
   loadNewsList(page, pageSize)
 }
 
-// 处理收藏
 const handleFavorite = async (news) => {
   try {
-    await newsApi.toggleFavorite(news.id)
-    ElMessage.success(news.isFavorite ? '已添加到收藏' : '已取消收藏')
+    if (news.is_favorite) {
+      await favoriteApi.removeByNews(news.id)
+      ElMessage.success('已取消收藏')
+    } else {
+      await favoriteApi.add({ news_id: news.id, tags: [] })
+      ElMessage.success('已添加到收藏')
+    }
+    loadNewsList()
   } catch (error) {
     ElMessage.error('操作失败')
   }
 }
 
-// 处理新闻点击
-const handleNewsClick = (news) => {
-  ElMessage.info(`点击：${news.title}`)
-}
-
 onMounted(() => {
   loadNewsList()
-  loadHotRanking()
 })
 </script>
 

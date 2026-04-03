@@ -40,8 +40,21 @@ class ExcelService:
             df = self._standardize_columns(df)
             sources = []
             for _, row in df.iterrows():
-                source = {"name": str(row.get("信源名称", "")), "url": str(row.get("信源 URL", "")), "category": str(row.get("分类", "")), "weight": int(row.get("权重", 1)) if pd.notna(row.get("权重")) else 1, "board": str(row.get("板块", ""))}
-                if source["name"] and source["url"]: sources.append(source)
+                name = str(row.get("信源名称", "")).strip()
+                url = str(row.get("信源 URL", "")).strip()
+                category = str(row.get("分类", "")).strip()
+                board = str(row.get("板块", "")).strip()
+                raw_weight = row.get("权重")
+                weight = int(raw_weight) if pd.notna(raw_weight) and str(raw_weight).strip() not in ("", "nan") else 5
+                # 过滤空值和 NaN 占位符
+                if name and name != "nan" and url and url != "nan":
+                    sources.append({
+                        "name": name,
+                        "url": url,
+                        "category": category if category != "nan" else "",
+                        "weight": weight,
+                        "board": board if board != "nan" else "",
+                    })
             return {"success": True, "data": sources, "error": ""}
         except Exception as e:
             return {"success": False, "data": [], "error": str(e)}
@@ -100,12 +113,25 @@ class ExcelService:
 
 
     def _standardize_columns(self, df):
-        """标准化列名"""
-        column_mapping = {"name": "信源名称", "source_name": "信源名称", "url": "信源 URL", "source_url": "信源 URL", "category": "分类", "weight": "权重", "board": "板块"}
+        """标准化列名，兼容多种 Excel 格式"""
+        # 统一映射到内部标准列名
+        column_mapping = {
+            # 名称字段
+            "网站名称": "信源名称", "source_name": "信源名称", "name": "信源名称",
+            # URL 字段
+            "URL": "信源 URL", "官方地址": "信源 URL", "source_url": "信源 URL", "url": "信源 URL",
+            # 分类字段
+            "信息分类": "分类", "category": "分类",
+            # 权重字段
+            "weight": "权重",
+            # 板块字段
+            "board": "板块",
+        }
         df = df.rename(columns=column_mapping)
-        required_columns = ["信源名称", "信源 URL"]
-        for col in required_columns:
-            if col not in df.columns: df[col] = ""
+        # 确保必要列存在
+        for col in ["信源名称", "信源 URL", "分类", "权重", "板块"]:
+            if col not in df.columns:
+                df[col] = ""
         return df
 
 

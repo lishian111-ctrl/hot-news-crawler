@@ -1,52 +1,75 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api',
-  timeout: 10000
+  baseURL: '/api/v1',
+  timeout: 15000
 })
 
 // 新闻 API
 export const newsApi = {
-  // 获取新闻列表
-  getList: (params) => api.get('/news', { params }),
-  // 获取新闻详情
+  getList: (params) => api.get('/news/list', { params }),
   getDetail: (id) => api.get(`/news/${id}`),
-  // 搜索新闻
-  search: (params) => api.get('/news/search', { params })
+  getCategories: () => api.get('/news/categories'),
+  delete: (id) => api.delete(`/news/${id}`)
 }
 
 // 热点 API
 export const hotApi = {
-  // 获取热点列表
-  getList: (params) => api.get('/hot', { params }),
-  // 获取热点排行
-  getRank: () => api.get('/hot/rank')
+  getDaily: (params) => api.get('/hot/daily', { params }),
+  getStatistics: (params) => api.get('/hot/statistics', { params }),
+  getTrend: (params) => api.get('/hot/trend', { params })
 }
 
 // 收藏 API
 export const favoriteApi = {
-  // 获取收藏列表
-  getList: (params) => api.get('/favorite', { params }),
-  // 添加收藏
-  add: (data) => api.post('/favorite', data),
-  // 删除收藏
-  delete: (id) => api.delete(`/favorite/${id}`),
-  // 检查是否已收藏
-  check: (newsId) => api.get(`/favorite/check/${newsId}`)
+  getList: (params) => api.get('/favorite/list', { params }),
+  add: (data) => api.post('/favorite/add', data),
+  remove: (id) => api.delete(`/favorite/${id}`),
+  removeByNews: (newsId) => api.delete(`/favorite/by_news/${newsId}`),
+  updateTags: (id, tags) => api.put(`/favorite/${id}/tags`, { tags }),
+  getTags: () => api.get('/favorite/tags')
 }
 
 // 信源 API
 export const sourceApi = {
-  // 获取信源列表
-  getList: (params) => api.get('/source', { params }),
-  // 添加信源
-  add: (data) => api.post('/source', data),
-  // 更新信源
+  getList: (params) => api.get('/source/list', { params }),
+  getDetail: (id) => api.get(`/source/${id}`),
+  add: (data) => api.post('/source/add', data),
   update: (id, data) => api.put(`/source/${id}`, data),
-  // 删除信源
   delete: (id) => api.delete(`/source/${id}`),
-  // 获取信源详情
-  getDetail: (id) => api.get(`/source/${id}`)
+  getCategories: () => api.get('/source/categories'),
+  importExcel: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/source/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  exportExcel: (params) => api.get('/source/export', {
+    params,
+    responseType: 'blob'
+  })
+}
+
+// 采集 API
+export const crawlApi = {
+  run: () => api.post('/crawl/run'),
+  status: () => api.get('/crawl/status')
+}
+
+// 日志 API
+export const logsApi = {
+  getRecent: (params) => api.get('/logs/recent', { params }),
+  getStatistics: () => api.get('/logs/statistics'),
+  getSystem: () => api.get('/logs/system'),
+  getFiles: () => api.get('/logs/files')
+}
+
+// 翻译 API
+export const translateApi = {
+  translate: (data) => api.post('/translate/translate', data),
+  summary: (data) => api.post('/translate/summary', data),
+  detectLanguage: (text) => api.get('/translate/detect-language', { params: { text } })
 }
 
 export default api

@@ -38,7 +38,7 @@
             </div>
             <div class="ranking-meta">
               <span class="ranking-hot" v-if="item.hotValue !== undefined">
-                <el-icon><Fire /></el-icon>
+                <el-icon><Promotion /></el-icon>
                 {{ formatHotValue(item.hotValue) }}
               </span>
               <span class="ranking-time" v-if="item.publishTime">
@@ -57,7 +57,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { TrendCharts, Refresh, Fire, Clock } from '@element-plus/icons-vue'
+import { TrendCharts, Refresh, Promotion, Clock } from '@element-plus/icons-vue'
 
 const props = defineProps({
   title: {

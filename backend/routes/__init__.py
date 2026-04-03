@@ -6,11 +6,15 @@ from .hot import router as hot_router
 from .favorite import router as favorite_router
 from .source import router as source_router
 from .logs import router as logs_router
+from .crawl import router as crawl_router
+from .translate import router as translate_router
 
 __all__ = [
     "news_router",
-    "hot_router", 
+    "hot_router",
     "favorite_router",
     "source_router",
-    "logs_router"
+    "logs_router",
+    "crawl_router",
+    "translate_router",
 ]

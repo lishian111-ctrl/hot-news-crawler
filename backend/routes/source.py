@@ -2,16 +2,33 @@
 信源接口路由
 提供信源列表、Excel 导入导出等 API
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Response, Body
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 from datetime import datetime
 from loguru import logger
+from pydantic import BaseModel
 
 from database import get_db
 from models.source import Source
 from services.excel import ExcelService
+
+
+class SourceCreate(BaseModel):
+    name: str
+    url: str
+    category: str = ""
+    weight: int = 5
+    board: str = ""
+
+
+class SourceUpdate(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
+    category: Optional[str] = None
+    weight: Optional[int] = None
+    board: Optional[str] = None
 
 router = APIRouter(prefix="/source", tags=["信源管理"])
 
@@ -38,7 +55,7 @@ async def get_source_list(
     stmt = stmt.offset(offset).limit(page_size)
     result = await db.execute(stmt)
     sources = result.scalars().all()
-    
+
     count_stmt = select(func.count(Source.id))
     if category:
         count_stmt = count_stmt.where(Source.category == category)
@@ -50,9 +67,9 @@ async def get_source_list(
         )
     count_result = await db.execute(count_stmt)
     total = count_result.scalar()
-    
+
     source_data = [source.to_dict() for source in sources]
-    
+
     return {
         "code": 200,
         "message": "success",
@@ -64,16 +81,6 @@ async def get_source_list(
             "total_pages": (total + page_size - 1) // page_size
         }
     }
-
-
-@router.get("/{source_id}", summary="获取信源详情")
-async def get_source_detail(source_id: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(Source).where(Source.id == source_id)
-    result = await db.execute(stmt)
-    source = result.scalar_one_or_none()
-    if not source:
-        raise HTTPException(status_code=404, detail="信源不存在")
-    return {"code": 200, "message": "success", "data": source.to_dict()}
 
 
 @router.post("/import", summary="Excel 导入信源")
@@ -163,12 +170,14 @@ async def export_source_excel(
         raise HTTPException(status_code=500, detail=excel_result.get("error", "导出失败"))
     
     excel_bytes = excel_result.get("content", b"")
-    filename = "信源列表_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".xlsx"
-    
+    filename = "sources_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".xlsx"
+    from urllib.parse import quote
+    encoded = quote("信源列表_" + datetime.now().strftime("%Y%m%d%H%M%S") + ".xlsx")
+
     return Response(
         content=excel_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=" + filename}
+        headers={"Content-Disposition": f"attachment; filename={filename}; filename*=UTF-8''{encoded}"}
     )
 
 
@@ -184,6 +193,36 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
         for row in result.all()
     ]
     return {"code": 200, "message": "success", "data": categories}
+
+
+@router.put("/{source_id}", summary="更新信源")
+async def update_source(
+    source_id: int,
+    data: SourceUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(Source).where(Source.id == source_id)
+    result = await db.execute(stmt)
+    source = result.scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="信源不存在")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(source, field, value)
+    await db.commit()
+    await db.refresh(source)
+    return {"code": 200, "message": "success", "data": source.to_dict()}
+
+
+@router.post("/add", summary="添加信源")
+async def add_source(
+    data: SourceCreate,
+    db: AsyncSession = Depends(get_db)
+):
+    source = Source(**data.model_dump())
+    db.add(source)
+    await db.commit()
+    await db.refresh(source)
+    return {"code": 200, "message": "success", "data": source.to_dict()}
 
 
 @router.delete("/{source_id}", summary="删除信源")

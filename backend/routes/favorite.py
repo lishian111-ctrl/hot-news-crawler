@@ -25,23 +25,27 @@ async def get_favorite_list(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        stmt = select(Favorite).order_by(Favorite.created_at.desc())
-        
+        # 使用 joinedload 预加载 news 和 source 关系
+        from sqlalchemy.orm import joinedload
+        stmt = select(Favorite).options(
+            joinedload(Favorite.news).joinedload(News.source)
+        ).order_by(Favorite.created_at.desc())
+
         if tag:
             stmt = stmt.where(Favorite.tags.contains(tag))
-        
+
         offset = (page - 1) * page_size
         stmt = stmt.offset(offset).limit(page_size)
-        
+
         result = await db.execute(stmt)
-        favorites = result.scalars().all()
-        
+        favorites = result.scalars().unique().all()
+
         count_stmt = select(func.count(Favorite.id))
         if tag:
             count_stmt = count_stmt.where(Favorite.tags.contains(tag))
         count_result = await db.execute(count_stmt)
         total = count_result.scalar()
-        
+
         favorite_data = []
         for fav in favorites:
             fav_dict = fav.to_dict()
@@ -54,7 +58,7 @@ async def get_favorite_list(
             except:
                 fav_dict["tags_list"] = []
             favorite_data.append(fav_dict)
-        
+
         return {
             "code": 200,
             "message": "success",

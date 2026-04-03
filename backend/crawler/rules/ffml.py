@@ -15,77 +15,77 @@ class FFMLRules:
         'name': 'API - 新闻',
         'base_url': 'https://www.api.org',
         'list_url': 'https://www.api.org/news-policy-and-issues/news',
-        'list_item_selector': 'div.news-item',
-        'title_selector': 'h3 a',
-        'link_selector': 'h3 a',
+        'list_item_selector': 'ul li',
+        'title_selector': 'a',
+        'link_selector': 'a',
         'link_attr': 'href',
-        'time_selector': 'span.date',
-        'content_selector': 'div.article-content',
+        'time_selector': 'time',
+        'content_selector': 'article',
     }
-    
+
     # DNV (Det Norske Veritas) - 挪威船级社
     DNV_NEWS = {
         'name': 'DNV - 新闻',
         'base_url': 'https://www.dnv.com',
         'list_url': 'https://www.dnv.com/news/',
-        'list_item_selector': 'article.teaser',
-        'title_selector': 'h2 a',
-        'link_selector': 'h2 a',
+        'list_item_selector': 'article',
+        'title_selector': 'h2 a, h3 a',
+        'link_selector': 'h2 a, h3 a',
         'link_attr': 'href',
         'time_selector': 'time',
-        'content_selector': 'div.article-body',
+        'content_selector': 'div.article-body, article',
     }
-    
+
     # ABS (American Bureau of Shipping) - 美国船级社
     ABS_NEWS = {
         'name': 'ABS - 新闻',
-        'base_url': 'https://www.eagle.org',
-        'list_url': 'https://www.eagle.org/en/about-us/media-room/news.html',
-        'list_item_selector': 'div.news-item',
-        'title_selector': 'h4 a',
-        'link_selector': 'h4 a',
-        'link_attr': 'href',
-        'time_selector': 'span.date',
-        'content_selector': 'div.content',
-    }
-    
-    # 国际船舶网
-    WORLD_SHIP = {
-        'name': '国际船舶网',
-        'base_url': 'https://www.worldship.com',
-        'list_url': 'https://www.worldship.com/news/',
-        'list_item_selector': 'ul.news-list li',
+        'base_url': 'https://ww2.eagle.org',
+        'list_url': 'https://ww2.eagle.org/en/about/news-and-events/news.html',
+        'list_item_selector': 'ul li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.date',
-        'content_selector': 'div.article-content',
+        'content_selector': 'div.content',
     }
-    
+
     # 中国船舶工业行业协会
-    CHINA_SHIP = {
+    WORLD_SHIP = {
         'name': '中国船舶工业行业协会',
         'base_url': 'http://www.cansi.org.cn',
-        'list_url': 'http://www.cansi.org.cn/xhdt/',
-        'list_item_selector': 'ul.news-list li',
+        'list_url': 'http://www.cansi.org.cn',
+        'list_item_selector': 'ul li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
-        'time_selector': 'span.time',
+        'time_selector': 'span.date',
         'content_selector': 'div.content',
     }
-    
+
+    # 国际海事组织
+    CHINA_SHIP = {
+        'name': '国际海事组织 - 新闻',
+        'base_url': 'https://www.imo.org',
+        'list_url': 'https://www.imo.org/en/MediaCentre/Pages/WhatsNew-Expanded.aspx',
+        'list_item_selector': 'ul li',
+        'title_selector': 'a',
+        'link_selector': 'a',
+        'link_attr': 'href',
+        'time_selector': 'span.date',
+        'content_selector': 'div.content',
+    }
+
     # 劳氏船级社
     LR_NEWS = {
         'name': '劳氏船级社 - 新闻',
         'base_url': 'https://www.lr.org',
         'list_url': 'https://www.lr.org/en/insights/articles/',
-        'list_item_selector': 'article.card',
-        'title_selector': 'h3 a',
-        'link_selector': 'h3 a',
+        'list_item_selector': 'article, ul li',
+        'title_selector': 'h3 a, a',
+        'link_selector': 'h3 a, a',
         'link_attr': 'href',
-        'time_selector': 'span.date',
-        'content_selector': 'div.article-content',
+        'time_selector': 'time, span.date',
+        'content_selector': 'div.article-content, article',
     }
     
     @classmethod

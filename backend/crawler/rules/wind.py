@@ -10,19 +10,19 @@ from ..spider import GeneralSpider
 class WindRules:
     """海上风电行业网站采集规则"""
     
-    # 国家能源局 - 风电要闻
+    # 国家能源局 - 风电新闻（首页）
     NEA_WIND = {
         'name': '国家能源局 - 风电要闻',
         'base_url': 'http://www.nea.gov.cn',
-        'list_url': 'http://www.nea.gov.cn/list/xw/xyyw/index.htm',
-        'list_item_selector': 'ul.list-content li',
+        'list_url': 'http://www.nea.gov.cn',
+        'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.date',
         'content_selector': 'div.content',
     }
-    
+
     # 国家发改委 - 能源政策
     NDRC_WIND = {
         'name': '国家发改委 - 能源政策',
@@ -35,25 +35,25 @@ class WindRules:
         'time_selector': 'span.date',
         'content_selector': 'div.article_content',
     }
-    
-    # 国家海洋局 - 海洋经济
+
+    # 自然资源部（原国家海洋局）
     SOA_OCEAN = {
-        'name': '国家海洋局 - 海洋经济',
+        'name': '自然资源部 - 海洋资讯',
         'base_url': 'http://www.mnr.gov.cn',
-        'list_url': 'http://www.mnr.gov.cn/sj/hy/',
-        'list_item_selector': 'ul.news-list li',
+        'list_url': 'http://www.mnr.gov.cn',
+        'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.time',
         'content_selector': 'div.content',
     }
-    
-    # 生态环境部 - 环评公示
+
+    # 生态环境部
     MEE_EIA = {
-        'name': '生态环境部 - 环评公示',
+        'name': '生态环境部 - 新闻',
         'base_url': 'https://www.mee.gov.cn',
-        'list_url': 'https://www.mee.gov.cn/xxgk2018/xxgk/',
+        'list_url': 'https://www.mee.gov.cn',
         'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
@@ -61,12 +61,12 @@ class WindRules:
         'time_selector': 'span.date',
         'content_selector': 'div.article-content',
     }
-    
-    # 风能协会 - 行业新闻
+
+    # 风能协会
     CWA_NEWS = {
         'name': '风能协会 - 行业新闻',
         'base_url': 'http://www.cwea.org.cn',
-        'list_url': 'http://www.cwea.org.cn/list.php?fid=industry',
+        'list_url': 'http://www.cwea.org.cn',
         'list_item_selector': 'ul.news li',
         'title_selector': 'a',
         'link_selector': 'a',
@@ -74,13 +74,13 @@ class WindRules:
         'time_selector': 'span.date',
         'content_selector': 'div.content',
     }
-    
-    # 中国风电网
+
+    # 北极星风力发电网
     CHINA_WIND = {
-        'name': '中国风电网',
-        'base_url': 'http://www.chinawindpower.cn',
-        'list_url': 'http://www.chinawindpower.cn/news/',
-        'list_item_selector': 'ul.news-list li',
+        'name': '北极星风力发电网',
+        'base_url': 'https://news.bjx.com.cn',
+        'list_url': 'https://news.bjx.com.cn/nl/',
+        'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',

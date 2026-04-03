@@ -5,8 +5,8 @@
         <h1>热点资讯</h1>
         <el-menu mode="horizontal" :router="true" :default-active="$route.path">
           <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item index="/oil">油气</el-menu-item>
-          <el-menu-item index="/wind">风电</el-menu-item>
+          <el-menu-item index="/oil-gas">油气</el-menu-item>
+          <el-menu-item index="/wind-power">风电</el-menu-item>
           <el-menu-item index="/ffml">FFML</el-menu-item>
           <el-menu-item index="/hot">热点</el-menu-item>
           <el-menu-item index="/favorite">收藏</el-menu-item>

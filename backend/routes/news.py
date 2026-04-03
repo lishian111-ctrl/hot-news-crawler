@@ -32,17 +32,19 @@ async def get_news_list(
     获取新闻列表，支持分页、分类筛选、信源筛选、关键词搜索、时间范围筛选
     """
     try:
-        # 构建查询
-        stmt = select(News).order_by(News.publish_time.desc())
-        
+        # 构建查询，关联信源表
+        stmt = select(News, Source.name.label("source_name")).join(
+            Source, News.source_id == Source.id, isouter=True
+        ).order_by(News.publish_time.desc())
+
         # 分类筛选
         if category:
             stmt = stmt.where(News.category == category)
-        
+
         # 信源筛选
         if source_id:
             stmt = stmt.where(News.source_id == source_id)
-        
+
         # 关键词搜索（标题或摘要）
         if keyword:
             search_pattern = f"%{keyword}%"
@@ -52,21 +54,21 @@ async def get_news_list(
                     News.summary.like(search_pattern)
                 )
             )
-        
+
         # 时间范围筛选
         if start_time:
             stmt = stmt.where(News.publish_time >= start_time)
         if end_time:
             stmt = stmt.where(News.publish_time <= end_time)
-        
+
         # 分页
         offset = (page - 1) * page_size
         stmt = stmt.offset(offset).limit(page_size)
-        
+
         # 执行查询
         result = await db.execute(stmt)
-        news_list = result.scalars().all()
-        
+        rows = result.all()
+
         # 获取总数
         count_stmt = select(func.count(News.id))
         if category:
@@ -85,21 +87,17 @@ async def get_news_list(
             count_stmt = count_stmt.where(News.publish_time >= start_time)
         if end_time:
             count_stmt = count_stmt.where(News.publish_time <= end_time)
-        
+
         count_result = await db.execute(count_stmt)
         total = count_result.scalar()
-        
-        # 转换为字典
+
+        # 转换为字典，添加信源名称
         news_data = []
-        for news in news_list:
+        for news, source_name in rows:
             news_dict = news.to_dict()
-            # 关联信源信息
-            if news.source:
-                news_dict["source_name"] = news.source.name
-            # 关联收藏信息
-            news_dict["is_favorite"] = news.favorite is not None
+            news_dict["source_name"] = source_name
             news_data.append(news_dict)
-        
+
         return {
             "code": 200,
             "message": "success",
@@ -125,21 +123,26 @@ async def get_news_detail(
     根据 ID 获取新闻详细信息
     """
     try:
-        stmt = select(News).where(News.id == news_id)
+        # 关联信源表获取信源名称
+        stmt = select(News, Source.name.label("source_name")).join(
+            Source, News.source_id == Source.id, isouter=True
+        ).where(News.id == news_id)
         result = await db.execute(stmt)
-        news = result.scalar_one_or_none()
-        
-        if not news:
+        row = result.one_or_none()
+
+        if not row:
             raise HTTPException(status_code=404, detail="新闻不存在")
-        
+
+        news, source_name = row
         news_dict = news.to_dict()
-        # 关联信源信息
-        if news.source:
-            news_dict["source_info"] = news.source.to_dict()
-        # 关联收藏信息
-        if news.favorite:
-            news_dict["favorite_info"] = news.favorite.to_dict()
-        
+        news_dict["source_name"] = source_name
+
+        # 检查是否已收藏
+        fav_stmt = select(Favorite).where(Favorite.news_id == news.id)
+        fav_result = await db.execute(fav_stmt)
+        favorite = fav_result.scalar_one_or_none()
+        news_dict["is_favorite"] = favorite is not None
+
         return {
             "code": 200,
             "message": "success",

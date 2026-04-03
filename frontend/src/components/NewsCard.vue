@@ -39,13 +39,13 @@
 
       <!-- 底部信息 -->
       <div class="news-footer">
-        <span class="news-source" :title="news.source">
+        <span class="news-source" :title="news.source_name">
           <el-icon><Document /></el-icon>
-          {{ news.source || '未知来源' }}
+          {{ news.source_name || '未知来源' }}
         </span>
         <span class="news-time">
           <el-icon><Clock /></el-icon>
-          {{ formatTime(news.publishTime) }}
+          {{ formatTime(news.publish_time) }}
         </span>
       </div>
     </div>
@@ -54,8 +54,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Document, Clock, Star } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+
+const router = useRouter()
 
 const props = defineProps({
   news: {
@@ -82,7 +85,10 @@ const getCategoryType = (category) => {
     '风电': 'success',
     'FFML': 'primary',
     '热点': 'danger',
-    '综合': 'info'
+    '综合': 'info',
+    'oil_gas': 'warning',
+    'wind_power': 'success',
+    'ffml': 'primary'
   }
   return typeMap[category] || 'info'
 }
@@ -109,9 +115,9 @@ const toggleFavorite = () => {
   ElMessage.success(isFavorited.value ? '已添加到收藏' : '已取消收藏')
 }
 
-// 处理点击
+// 处理点击 - 跳转到详情页
 const handleClick = () => {
-  emit('click', props.news)
+  router.push(`/news/${props.news.id}`)
 }
 </script>
 

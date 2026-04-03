@@ -42,11 +42,17 @@ const routes = [
     name: 'Source',
     component: () => import('../views/Source.vue'),
     meta: { title: '信源' }
+  },
+  {
+    path: '/news/:id',
+    name: 'NewsDetail',
+    component: () => import('../views/NewsDetail.vue'),
+    meta: { title: '新闻详情' }
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/'),
   routes
 })
 

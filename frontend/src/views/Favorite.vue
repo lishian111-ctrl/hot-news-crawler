@@ -6,15 +6,6 @@
         我的收藏
       </h1>
       <div class="header-actions">
-        <el-button 
-          type="danger" 
-          plain 
-          @click="handleBatchDelete"
-          :disabled="selectedIds.length === 0"
-        >
-          <el-icon><Delete /></el-icon>
-          批量删除
-        </el-button>
         <el-button type="primary" @click="handleRefresh" :loading="loading">
           <el-icon><Refresh /></el-icon>
           刷新
@@ -22,33 +13,76 @@
       </div>
     </div>
 
+    <!-- 标签筛选 -->
+    <el-card class="filter-card" v-if="allTags.length > 0">
+      <div class="tag-filter">
+        <span class="filter-label">标签筛选：</span>
+        <el-tag
+          v-for="tag in allTags"
+          :key="tag.tag"
+          :type="selectedTag === tag.tag ? 'primary' : 'info'"
+          class="tag-item"
+          effect="plain"
+          @click="filterByTag(tag.tag)"
+          style="cursor: pointer"
+        >
+          {{ tag.tag }} ({{ tag.count }})
+        </el-tag>
+        <el-tag v-if="selectedTag" type="danger" effect="plain" @click="filterByTag(null)" style="cursor: pointer">
+          清除筛选
+        </el-tag>
+      </div>
+    </el-card>
+
     <el-table
-      v-model:selection-rows="selectedRows"
       :data="favoriteList"
       style="width: 100%"
-      @selection-change="handleSelectionChange"
       v-loading="loading"
     >
-      <el-table-column type="selection" width="55" />
-      <el-table-column prop="title" label="标题" min-width="300">
+      <el-table-column prop="news_info.title" label="标题" min-width="300">
         <template #default="{ row }">
-          <span class="news-title" :title="row.title">{{ row.title }}</span>
+          <a
+            v-if="row.news_info?.source_url"
+            :href="row.news_info.source_url"
+            target="_blank"
+            class="news-title-link"
+          >
+            {{ row.news_info?.title || '无标题' }}
+          </a>
+          <span v-else class="news-title">{{ row.news_info?.title || '无标题' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="category" label="分类" width="100">
+      <el-table-column prop="news_info.category" label="分类" width="100">
         <template #default="{ row }">
-          <el-tag :type="getCategoryType(row.category)" size="small">
-            {{ row.category || '综合' }}
+          <el-tag :type="getCategoryType(row.news_info?.category)" size="small">
+            {{ getCategoryLabel(row.news_info?.category) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="source" label="来源" width="120" />
-      <el-table-column prop="publishTime" label="发布时间" width="180">
+      <el-table-column prop="news_info.source_name" label="来源" width="120" />
+      <el-table-column label="标签" width="200">
         <template #default="{ row }">
-          {{ formatTime(row.publishTime) }}
+          <el-tag
+            v-for="tag in row.tags_list"
+            :key="tag"
+            size="small"
+            class="tag-item"
+            closable
+            @close="removeTag(row, tag)"
+          >
+            {{ tag }}
+          </el-tag>
+          <el-button type="primary" text size="small" @click="openTagDialog(row)">
+            + 标签
+          </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column prop="created_at" label="收藏时间" width="180">
+        <template #default="{ row }">
+          {{ formatTime(row.created_at) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="100" fixed="right">
         <template #default="{ row }">
           <el-button
             type="danger"
@@ -56,142 +90,192 @@
             size="small"
             @click="handleDelete(row)"
           >
-            <el-icon><Delete /></el-icon>
-            删除
+            取消收藏
           </el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
     <div class="pagination-container" v-if="favoriteList.length > 0">
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
+        :page-sizes="[10, 20, 50]"
         :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
+        layout="total, sizes, prev, pager, next"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
     </div>
 
-    <!-- 空状态 -->
     <el-empty v-if="!loading && favoriteList.length === 0" description="暂无收藏内容">
-      <el-button type="primary" @click="$router.push('/')">去浏览新闻</el-button>
+      <el-button type="primary" @click="$router.push('/oil-gas')">去浏览新闻</el-button>
     </el-empty>
+
+    <!-- 标签编辑弹窗 -->
+    <el-dialog v-model="tagDialogVisible" title="编辑标签" width="400px">
+      <div class="tag-editor">
+        <div class="preset-tags">
+          <span class="label">快捷标签：</span>
+          <el-tag
+            v-for="preset in presetTags"
+            :key="preset"
+            :type="editingTags.includes(preset) ? 'primary' : 'info'"
+            effect="plain"
+            style="cursor: pointer; margin: 4px"
+            @click="toggleTag(preset)"
+          >
+            {{ preset }}
+          </el-tag>
+        </div>
+        <div class="current-tags" style="margin-top: 12px">
+          <span class="label">当前标签：</span>
+          <el-tag
+            v-for="tag in editingTags"
+            :key="tag"
+            closable
+            style="margin: 4px"
+            @close="editingTags = editingTags.filter(t => t !== tag)"
+          >
+            {{ tag }}
+          </el-tag>
+          <span v-if="editingTags.length === 0" style="color: #999">无标签</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="tagDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveTags">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Star, Refresh, Delete } from '@element-plus/icons-vue'
+import { Star, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import newsApi from '../api/news'
+import { favoriteApi } from '../api/index'
 
 const loading = ref(false)
 const favoriteList = ref([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
-const selectedRows = ref([])
-const selectedIds = ref([])
+const allTags = ref([])
+const selectedTag = ref(null)
 
-// 获取分类标签类型
+const presetTags = ['#重要', '#待跟进', '#已处理']
+const tagDialogVisible = ref(false)
+const editingTags = ref([])
+const editingFavorite = ref(null)
+
 const getCategoryType = (category) => {
-  const typeMap = {
-    '油气': 'warning',
-    '风电': 'success',
-    'FFML': 'primary',
-    '热点': 'danger',
-    '综合': 'info'
-  }
-  return typeMap[category] || 'info'
+  const map = { oil_gas: 'warning', wind_power: 'success', ffml: 'primary' }
+  return map[category] || 'info'
 }
 
-// 格式化时间
+const getCategoryLabel = (category) => {
+  const map = { oil_gas: '油气', wind_power: '风电', ffml: 'FFML' }
+  return map[category] || '综合'
+}
+
 const formatTime = (time) => {
   if (!time) return ''
-  const date = new Date(time)
-  return date.toLocaleString('zh-CN')
+  return new Date(time).toLocaleString('zh-CN')
 }
 
-// 加载收藏列表
-const loadFavoriteList = async (page = 1, pageSize = 20) => {
+const loadFavoriteList = async () => {
   loading.value = true
   try {
-    const res = await newsApi.getFavoriteList({ page, pageSize })
-    favoriteList.value = res.data.list || []
-    total.value = res.data.total || 0
+    const params = { page: currentPage.value, page_size: pageSize.value }
+    if (selectedTag.value) params.tag = selectedTag.value
+    const res = await favoriteApi.getList(params)
+    favoriteList.value = res.data?.data?.list || []
+    total.value = res.data?.data?.total || 0
   } catch (error) {
     ElMessage.error('加载收藏列表失败')
-    console.error(error)
   } finally {
     loading.value = false
   }
 }
 
-// 处理选择变化
-const handleSelectionChange = (selection) => {
-  selectedIds.value = selection.map(item => item.id)
+const loadTags = async () => {
+  try {
+    const res = await favoriteApi.getTags()
+    allTags.value = res.data?.data || []
+  } catch (e) {}
 }
 
-// 处理刷新
-const handleRefresh = () => {
-  loadFavoriteList(currentPage.value, pageSize.value)
-}
-
-// 处理分页大小变化
-const handleSizeChange = (size) => {
+const filterByTag = (tag) => {
+  selectedTag.value = tag
   currentPage.value = 1
-  loadFavoriteList(1, size)
+  loadFavoriteList()
 }
 
-// 处理页码变化
-const handleCurrentChange = (page) => {
-  loadFavoriteList(page, pageSize.value)
+const handleRefresh = () => {
+  loadFavoriteList()
+  loadTags()
 }
 
-// 处理删除
+const handleSizeChange = () => {
+  currentPage.value = 1
+  loadFavoriteList()
+}
+
+const handleCurrentChange = () => {
+  loadFavoriteList()
+}
+
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm('确定要取消收藏吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await newsApi.removeFavorite(row.id)
+    await ElMessageBox.confirm('确定要取消收藏吗？', '提示', { type: 'warning' })
+    await favoriteApi.remove(row.id)
     ElMessage.success('已取消收藏')
-    loadFavoriteList(currentPage.value, pageSize.value)
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
+    loadFavoriteList()
+    loadTags()
+  } catch (e) {}
+}
+
+const openTagDialog = (row) => {
+  editingFavorite.value = row
+  editingTags.value = [...(row.tags_list || [])]
+  tagDialogVisible.value = true
+}
+
+const toggleTag = (tag) => {
+  if (editingTags.value.includes(tag)) {
+    editingTags.value = editingTags.value.filter(t => t !== tag)
+  } else {
+    editingTags.value.push(tag)
   }
 }
 
-// 处理批量删除
-const handleBatchDelete = async () => {
+const saveTags = async () => {
   try {
-    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 项收藏吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    await newsApi.batchRemoveFavorite(selectedIds.value)
-    ElMessage.success('批量删除成功')
-    selectedIds.value = []
-    selectedRows.value = []
-    loadFavoriteList(currentPage.value, pageSize.value)
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('批量删除失败')
-    }
+    await favoriteApi.updateTags(editingFavorite.value.id, editingTags.value)
+    ElMessage.success('标签更新成功')
+    tagDialogVisible.value = false
+    loadFavoriteList()
+    loadTags()
+  } catch (e) {
+    ElMessage.error('更新标签失败')
+  }
+}
+
+const removeTag = async (row, tag) => {
+  const newTags = (row.tags_list || []).filter(t => t !== tag)
+  try {
+    await favoriteApi.updateTags(row.id, newTags)
+    row.tags_list = newTags
+    loadTags()
+  } catch (e) {
+    ElMessage.error('删除标签失败')
   }
 }
 
 onMounted(() => {
   loadFavoriteList()
+  loadTags()
 })
 </script>
 
@@ -226,48 +310,52 @@ onMounted(() => {
   gap: 12px;
 }
 
-:deep(.el-button) {
+:deep(.page-header .el-button) {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
 
-:deep(.el-button:hover:not(.el-button--plain)) {
-  background: rgba(255, 255, 255, 0.3);
+.filter-card {
+  margin-bottom: 20px;
 }
 
-:deep(.el-button--plain) {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
+.tag-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-:deep(.el-button--plain:hover) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #fff;
-  color: #fff;
+.filter-label, .label {
+  font-weight: 600;
+  color: #606266;
+}
+
+.tag-item {
+  margin: 2px 4px;
+}
+
+.news-title-link {
+  color: #409EFF;
+  text-decoration: none;
+}
+
+.news-title-link:hover {
+  text-decoration: underline;
 }
 
 .news-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: #303133;
 }
 
 .pagination-container {
   display: flex;
   justify-content: center;
   margin-top: 24px;
-  padding: 20px 0;
-}
-
-:deep(.el-table) {
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 :deep(.el-table th) {
   background-color: #f5f7fa;
-  color: #606266;
 }
 </style>

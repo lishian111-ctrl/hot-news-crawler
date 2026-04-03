@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "后端 API 服务",
+      "runtimeExecutable": "E:/热点资讯/backend/venv/Scripts/python",
+      "runtimeArgs": ["main.py"],
+      "cwd": "E:/热点资讯/backend",
+      "port": 8000
+    },
+    {
+      "name": "前端开发服务",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "E:/热点资讯/frontend",
+      "port": 3000
+    }
+  ]
+}

@@ -38,6 +38,9 @@ HOST = "0.0.0.0"
 PORT = 8001
 DEBUG = True
 
+# 前端静态文件目录
+FRONTEND_DIST_DIR = ROOT_DIR / "frontend" / "dist"
+
 # ==================== 热点打分关键词配置 ====================
 # 行业关键词权重
 INDUSTRY_KEYWORDS = {
@@ -176,9 +179,9 @@ SCHEDULER_CONFIG = {
 # ==================== CORS 配置 ====================
 CORS_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:8080",
+    "http://localhost:8000",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8000",
 ]
 
 # ==================== API 配置 ====================

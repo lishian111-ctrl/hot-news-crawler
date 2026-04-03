@@ -10,19 +10,19 @@ from ..spider import GeneralSpider
 class OilGasRules:
     """油气行业网站采集规则"""
     
-    # 国家能源局 - 油气要闻
+    # 国家能源局 - 首页新闻
     NEA_OIL_NEWS = {
         'name': '国家能源局 - 油气要闻',
         'base_url': 'http://www.nea.gov.cn',
-        'list_url': 'http://www.nea.gov.cn/list/xw/xyyw/index.htm',
-        'list_item_selector': 'ul.list-content li',
+        'list_url': 'http://www.nea.gov.cn',
+        'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.date',
         'content_selector': 'div.content',
     }
-    
+
     # 国家发改委 - 能源新闻
     NDRC_ENERGY = {
         'name': '国家发改委 - 能源新闻',
@@ -35,25 +35,25 @@ class OilGasRules:
         'time_selector': 'span.date',
         'content_selector': 'div.article_content',
     }
-    
-    # 国资委 - 央企新闻
+
+    # 国资委 - 首页新闻
     SASAC_NEWS = {
         'name': '国资委 - 央企新闻',
         'base_url': 'http://www.sasac.gov.cn',
-        'list_url': 'http://www.sasac.gov.cn/n4470048/n20043293/index.html',
-        'list_item_selector': 'ul.new-list li',
+        'list_url': 'http://www.sasac.gov.cn',
+        'list_item_selector': 'ul.list li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.time',
         'content_selector': 'div.content',
     }
-    
-    # 中石油 - 公司新闻
+
+    # 中石油 - 首页新闻
     CNPC_NEWS = {
         'name': '中石油 - 公司新闻',
         'base_url': 'https://www.cnpc.com.cn',
-        'list_url': 'https://www.cnpc.com.cn/cnpc/xwzx/gsyw/index.shtml',
+        'list_url': 'https://www.cnpc.com.cn',
         'list_item_selector': 'ul.news-list li',
         'title_selector': 'a',
         'link_selector': 'a',
@@ -61,12 +61,12 @@ class OilGasRules:
         'time_selector': 'span.date',
         'content_selector': 'div.article-content',
     }
-    
-    # 中石化 - 新闻动态
+
+    # 中石化 - 首页新闻
     SINOPEC_NEWS = {
         'name': '中石化 - 新闻动态',
         'base_url': 'http://www.sinopecgroup.com',
-        'list_url': 'http://www.sinopecgroup.com/group/xwpd/index.shtml',
+        'list_url': 'http://www.sinopecgroup.com',
         'list_item_selector': 'ul.news_list li',
         'title_selector': 'a',
         'link_selector': 'a',
@@ -74,18 +74,18 @@ class OilGasRules:
         'time_selector': 'span.date',
         'content_selector': 'div.content',
     }
-    
-    # 中海油 - 新闻中心
+
+    # 中国能源网
     CNOOC_NEWS = {
-        'name': '中海油 - 新闻中心',
-        'base_url': 'https://www.cnooc.com.cn',
-        'list_url': 'https://www.cnooc.com.cn/art/2017/art_35/index.html',
-        'list_item_selector': 'ul.news-list li',
+        'name': '中国能源网',
+        'base_url': 'http://www.china5e.com',
+        'list_url': 'http://www.china5e.com/news/',
+        'list_item_selector': 'ul.list3 li',
         'title_selector': 'a',
         'link_selector': 'a',
         'link_attr': 'href',
         'time_selector': 'span.time',
-        'content_selector': 'div.article-content',
+        'content_selector': 'div.art_content',
     }
     
     @classmethod
